@@ -102,31 +102,30 @@ def get_outlet_status(opts: dict) -> int:
     """
 
     noutlets = []
+    pdu_dev_list = []
     ret = 0
 
-    if 'groups' in opts and len(opts['groups']) > 0:
-        for pdu in opts['pdus']:
-            pdu_dev = PDU(pdu, opts['user'], opts['passwd'])
+    for pdu in opts['pdus']:
+        pdu_dev_list.append(PDU(pdu, opts['user'], opts['passwd']))
+
+    for pdu_dev in pdu_dev_list:
+        if 'groups' in opts and len(opts['groups']) > 0:
             group_list = pdu_dev.get_group_information()
 
             if group_list is None:
                 print('Failed to retrieve group information from %s.' % pdu_dev.get_host())
-                return 1
+            else:
+                for pdu_group in group_list:
+                    for group in opts['groups']:
+                        if pdu_group['name'] == group['name']:
+                            noutlets.extend(pdu_group['outlet_access'])
 
-            for pdu_group in group_list:
-                for group in opts['groups']:
-                    if pdu_group['name'] == group['name']:
-                        noutlets.extend(pdu_group['outlet_access'])
+        if 'outlets' in opts and len(opts['outlets']) > 0:
+            for outlet in opts['outlets']:
+                noutlets.append(outlet['name'])
 
-    if 'outlets' in opts and len(opts['outlets']) > 0:
-        for outlet in opts['outlets']:
-            noutlets.append(outlet['name'])
-
-    if len(noutlets) > 0:
-        noutlets = list(set(noutlets))
-        for pdu in opts['pdus']:
-            pdu_dev = PDU(pdu, opts['user'], opts['passwd'])
-
+        if len(noutlets) > 0:
+            noutlets = list(set(noutlets))
             outlet_status = pdu_dev.get_outlet_status_all()
 
             if outlet_status is None:
@@ -227,12 +226,13 @@ def main():
                         help='reboot selected outlets/groups')
     parser.add_argument('--status', action='store_true',
                         help='get status of outlet or group')
-    parser.add_argument('--pdus', help='iPDU controller IPs')
+    parser.add_argument('--pdus', help='iPDU controller hostnames, IPv4 ' \
+                                        'addrs, and/or IPv6 addrs')
     parser.add_argument('--outlets', help='target outlets')
     parser.add_argument('--groups', help='target groups')
     parser.add_argument('--user', help='Jaws user name')
     parser.add_argument('--passwd', help='Jaws password')
-    parser.add_argument('--file', help='power sequence file in json, command ' \
+    parser.add_argument('--file',help='power sequence file in json, command ' \
                                         'line overrides values in the file')
     parser.add_argument('--version', action='store_true',
                         help='print script version information and exit')

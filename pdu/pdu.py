@@ -179,7 +179,7 @@ class PDU:
                 retval = self._jaws.send_outlet_power_command(outlet['operation'], outlet['name'])
 
                 if retval == 0:
-                    print('do_outlet_power_control: %s sent for outlet %s at ' \
+                    print('Success, %s sent for outlet %s at ' \
                             '%s' % (outlet['operation'], outlet['name'],
                                     self._host))
                     break
@@ -213,7 +213,7 @@ class PDU:
                 retval = self._jaws.send_group_power_command(group['operation'], group['name'])
 
                 if retval == 0:
-                    print('do_group_power_control: %s sent for group %s at %s' %
+                    print('Success, %s sent for group %s at %s' %
                             (group['operation'], group['name'], self._host))
                     break
                 else:
