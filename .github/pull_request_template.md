@@ -27,12 +27,6 @@ Test description:
 
 _How were the changes tested and success verified? If schema changes were part of this change, how were those handled in your upgrade/downgrade testing?_
 
-- Were the install/upgrade-based validation checks/tests run (goss tests/install-validation doc)?
-- Were continuous integration tests run? If not, why?
-- Was upgrade tested? If not, why?
-- Was downgrade tested? If not, why?
-
-
 ## Risks and Mitigations
 
 _Are there known issues with these changes? Any other special considerations?_
