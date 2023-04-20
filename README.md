@@ -16,18 +16,28 @@ interface without the user needing to how to use the JAWS interface.
 ### Installation
 
 1. Create and activate python3 virtual environment
+
 ```bash
 # python3 -m venv ipdu
 # cd ipdu
 # . bin/activate
 ```
+
 2. Clone ServerTech iPDU tool
+
 ```bash
 # git clone git@github.com:Cray-HPE/servertech-pdu.git
 
 or
 
 # git clone https://github.com/Cray-HPE/servertech-pdu.git
+```
+
+3. Install local requirements.
+
+```bash
+# cd servertech-pdu
+# pip install -r requirements.txt
 ```
 
 ### Usage
