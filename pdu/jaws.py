@@ -126,24 +126,34 @@ class Jaws:
             A dictionary containing all the outlets and their status
             information.
         """
+        fname = 'get_outlet_status_all'
         # SSL verification is not used which results in a
         # InsecureRequestWarning. The following line disables only the
         # IsnsecureRequestWarning.
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
         url = '%s/%s' % (self._base_url, URLs.OUTLET_MONITOR)
-        rsp = requests.get(
-                url = url,
-                auth = self._basic_auth,
-                headers = self._headers,
-                verify = False
-            )
+        try:
+            rsp = requests.get(
+                    url = url,
+                    auth = self._basic_auth,
+                    headers = self._headers,
+                    verify = False
+                )
+        except requests.HTTPError as req_http_err:
+            print(fname, ': HTTP Error: ', req_http_err)
+        except requests.ConnectionError as req_con_err:
+            print(fname, ': Connection Error: ', req_con_err)
+        except requests.Timeout as req_to:
+            print(fname, ': Timeout: ', req_to)
+        except requests.RequestException as req_err:
+            print(fname, ': Error: ', req_err)
 
         if not rsp.text:
             return None
 
         if rsp.status_code >= HTTPStatus.MULTIPLE_CHOICES:
-            print('get_outlet_status_all: Jaws call returned %d.' %
+            print(fname, ': Jaws call returned %d.' %
                     rsp.status_code)
 
         return rsp.text
@@ -159,24 +169,35 @@ class Jaws:
             A dictionary containing the group definitions and the outlets
             associated with them.
         """
+        fname = 'get_group_information'
         # SSL verification is not used which results in a
         # InsecureRequestWarning. The following line disables only the
         # IsnsecureRequestWarning.
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         url = '%s/%s' % (self._base_url, URLs.GROUP_MONITOR)
 
-        rsp = requests.get(
-                url = url,
-                auth = self._basic_auth,
-                headers = self._headers,
-                verify = False
-            )
+        try:
+            rsp = requests.get(
+                    url = url,
+                    auth = self._basic_auth,
+                    headers = self._headers,
+                    verify = False
+                )
+
+        except requests.HTTPError as req_http_err:
+            print(fname, ': HTTP Error: ', req_http_err)
+        except requests.ConnectionError as req_con_err:
+            print(fname, ': Connection Error: ', req_con_err)
+        except requests.Timeout as req_to:
+            print(fname, ': Timeout: ', req_to)
+        except requests.RequestException as req_err:
+            print(fname, ': Error: ', req_err)
 
         if not rsp.text:
             return None
 
         if rsp.status_code >= HTTPStatus.MULTIPLE_CHOICES:
-            print('get_group_information: Jaws call returned %d.' %
+            print(fname, ': Jaws call returned %d.' %
                     rsp.status_code)
             return None
 
@@ -195,6 +216,7 @@ class Jaws:
         Returns:
             0 on success, 1 on error
         """
+        fname = 'send_outlet_power_command'
         # SSL verification is not used which results in a
         # InsecureRequestWarning. The following line disables only the
         # IsnsecureRequestWarning.
@@ -206,16 +228,26 @@ class Jaws:
             'control_action': operation
         }
 
-        rsp = requests.patch(
-            url = url,
-            auth = self._basic_auth,
-            headers = self._headers,
-            data = json.dumps(payload),
-            verify = False
-        )
+        try:
+            rsp = requests.patch(
+                url = url,
+                auth = self._basic_auth,
+                headers = self._headers,
+                data = json.dumps(payload),
+                verify = False
+            )
+
+        except requests.HTTPError as req_http_err:
+            print(fname, ': HTTP Error: ', req_http_err)
+        except requests.ConnectionError as req_con_err:
+            print(fname, ': Connection Error: ', req_con_err)
+        except requests.Timeout as req_to:
+            print(fname, ': Timeout: ', req_to)
+        except requests.RequestException as req_err:
+            print(fname, ': Error: ', req_err)
 
         if rsp.status_code >= HTTPStatus.MULTIPLE_CHOICES:
-            print('send_outlet_power_command: (%d) Failed to send \'%s\' to ' \
+            print(fname, ': (%d) Failed to send \'%s\' to ' \
                     'outlet %s in %s' %
                     (rsp.status_code, operation, outlet, self._host))
             return 1
@@ -235,6 +267,7 @@ class Jaws:
         Returns:
             0 on success, 1 on error
         """
+        fname = 'send_group_power_command'
         # SSL verification is not used which results in a
         # InsecureRequestWarning. The following line disables only the
         # IsnsecureRequestWarning.
@@ -246,13 +279,23 @@ class Jaws:
             'control_action': operation
         }
 
-        rsp = requests.patch(
-            url = url,
-            auth = self._basic_auth,
-            headers = self._headers,
-            data = json.dumps(payload),
-            verify = False
-        )
+        try:
+            rsp = requests.patch(
+                url = url,
+                auth = self._basic_auth,
+                headers = self._headers,
+                data = json.dumps(payload),
+                verify = False
+            )
+
+        except requests.HTTPError as req_http_err:
+            print(fname, ': HTTP Error: ', req_http_err)
+        except requests.ConnectionError as req_con_err:
+            print(fname, ': Connection Error: ', req_con_err)
+        except requests.Timeout as req_to:
+            print(fname, ': Timeout: ', req_to)
+        except requests.RequestException as req_err:
+            print(fname, ': Error: ', req_err)
 
         if rsp.status_code >= HTTPStatus.MULTIPLE_CHOICES:
             print('send_group_power_command: (%d) Failed to send \'%s\' to ' \

@@ -94,16 +94,16 @@ class PDU:
                 print('get_outlet_status_all: exceeded retries for %s, ' \
                         'giving up' % self._host)
                 return None
+            rsp = self._jaws.get_outlet_status_all()
+
+            if rsp is None:
+                print('get_outlet_status_all: None returned from %s, ' \
+                        'retrying ...' % self._host)
+                time.sleep(1)
+                retries += 1
+                continue
+
             try:
-                rsp = self._jaws.get_outlet_status_all()
-
-                if rsp is None:
-                    print('get_outlet_status_all: None returned from %s, ' \
-                            'retrying ...' % self._host)
-                    time.sleep(1)
-                    retries += 1
-                    continue
-
                 outlet_status = json.loads(rsp)
                 break
             except json.decoder.JSONDecodeError:
@@ -133,16 +133,16 @@ class PDU:
                 print('get_group_information: exceeded retries for %s, ' \
                         'giving up' % self._host)
                 return None
+            rsp = self._jaws.get_group_information()
+
+            if rsp is None:
+                print('get_group_information: None returned from %s, ' \
+                        'retrying ...' % self._host)
+                time.sleep(1)
+                retries += 1
+                continue
+
             try:
-                rsp = self._jaws.get_group_information()
-
-                if rsp is None:
-                    print('get_group_information: None returned from %s, ' \
-                            'retrying ...' % self._host)
-                    time.sleep(1)
-                    retries += 1
-                    continue
-
                 group_info = json.loads(rsp)
                 break
             except json.decoder.JSONDecodeError:
