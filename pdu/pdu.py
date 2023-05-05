@@ -39,7 +39,11 @@ Typical usage example:
 
 import json
 import time
+import logging
 from pdu.jaws import Jaws
+
+logging.basicConfig(level=logging.INFO,
+            format="%(levelname)s:%(name)s:%(message)s")
 
 class PDU:
     """
@@ -70,6 +74,19 @@ class PDU:
         self._host = host
         self._user = user
         self._jaws = Jaws(host, user, passwd)
+        self.logger = logging.getLogger("pdu")
+
+    def error(self, msg: str):
+        """ Log an error """
+        self.logger.error(msg)
+
+    def warning(self, msg: str):
+        """ Log a warning """
+        self.logger.warning(msg)
+
+    def info(self, msg: str):
+        """ Log a message """
+        self.logger.info(msg)
 
     def get_host(self) -> str:
         """ Return hostname/IP """
@@ -87,18 +104,19 @@ class PDU:
             A dictionary containing all the outlets and their status
             information.
         """
+        fname = 'get_outlet_status_all'
         outlet_status = None
         retries = 0
         while True:
             if retries > 5:
-                print('get_outlet_status_all: exceeded retries for %s, ' \
-                        'giving up' % self._host)
+                self.error(f'{fname}: exceeded retries for {self._host}, ' \
+                    'giving up')
                 return None
             rsp = self._jaws.get_outlet_status_all()
 
             if rsp is None:
-                print('get_outlet_status_all: None returned from %s, ' \
-                        'retrying ...' % self._host)
+                self.warning(f'{fname}: None returned from {self._host}, ' \
+                    'retrying ...')
                 time.sleep(1)
                 retries += 1
                 continue
@@ -107,8 +125,8 @@ class PDU:
                 outlet_status = json.loads(rsp)
                 break
             except json.decoder.JSONDecodeError:
-                print('get_outlet_status_all: JSON decode Failed from %s, ' \
-                        'retrying ...' % self._host)
+                self.warning(f'{fname}: JSON decode Failed from {self._host}, '\
+                    'retrying ...')
                 time.sleep(1)
                 retries += 1
 
@@ -126,18 +144,19 @@ class PDU:
             A dictionary containing the group definitions and the outlets
             associated with them.
         """
+        fname = 'get_group_information'
         group_info = None
         retries = 0
         while True:
             if retries > 5:
-                print('get_group_information: exceeded retries for %s, ' \
-                        'giving up' % self._host)
+                self.error(f'{fname}: exceeded retries for {self._host}, ' \
+                    'giving up')
                 return None
             rsp = self._jaws.get_group_information()
 
             if rsp is None:
-                print('get_group_information: None returned from %s, ' \
-                        'retrying ...' % self._host)
+                self.warning(f'{fname}: None returned from {self._host}, ' \
+                    'retrying ...')
                 time.sleep(1)
                 retries += 1
                 continue
@@ -146,8 +165,8 @@ class PDU:
                 group_info = json.loads(rsp)
                 break
             except json.decoder.JSONDecodeError:
-                print('get_group_information: JSON decode failed from %s, ' \
-                            'retrying ...' % self._host)
+                self.warning(f'{fname}: JSON decode Failed from {self._host}, '\
+                    'retrying ...')
                 time.sleep(1)
                 retries += 1
 
@@ -167,26 +186,27 @@ class PDU:
         Returns:
             None
         """
+        fname = 'do_outlet_power_control'
         for outlet in outlets:
             retries = 0
             while True:
                 if retries >= 5:
-                    print('do_outlet_power_control: %s exceeded retries for ' \
-                            'outlet %s at %s, giving up' %
-                            (outlet['operation'], outlet['name'], self._host))
+                    self.error(f'{fname}: {outlet["operation"]} exceeded ' \
+                        'retries for outlet ' \
+                        '{outlet["name"]} at {self._host}, giving up')
                     break
 
-                retval = self._jaws.send_outlet_power_command(outlet['operation'], outlet['name'])
+                retval = self._jaws.send_outlet_power_command(
+                    outlet['operation'], outlet['name'])
 
                 if retval == 0:
-                    print('Success, %s sent for outlet %s at ' \
-                            '%s' % (outlet['operation'], outlet['name'],
-                                    self._host))
+                    self.info(f'Success, {outlet["operation"]} sent for ' \
+                        'outlet {outlet["name"]} at {self._host}')
                     break
                 else:
-                    print('do_outlet_power_control: %s failed to send for ' \
-                            'outlet %s at %s, retrying ...' %
-                            (outlet['operation'], outlet['name'], self._host))
+                    self.warning(f'{fname}: {outlet["operation"]} failed to ' \
+                        'send for outlet {outlet["name"]} at {self._host}, ' \
+                        'retyring ...')
                     time.sleep(1)
                     retries += 1
 
@@ -201,24 +221,26 @@ class PDU:
                 List of dictionaries that contain a group name and the operation
                 to be performed.
         """
+        fname = 'do_group_power_control'
         for group in groups:
             retries = 0
             while True:
                 if retries >= 5:
-                    print('do_group_power_control: %s exceeded retries for ' \
-                            'group %s at %s, giving up' %
-                            (group['operation'], group['name'], self._host))
+                    self.error(f'{fname}: {group["operation"]} exceeded ' \
+                        'retries for group {group["name"]} at {self._host}, ' \
+                        'giving up')
                     break
 
-                retval = self._jaws.send_group_power_command(group['operation'], group['name'])
+                retval = self._jaws.send_group_power_command(
+                    group['operation'], group['name'])
 
                 if retval == 0:
-                    print('Success, %s sent for group %s at %s' %
-                            (group['operation'], group['name'], self._host))
+                    self.info(f'Success, {group["operation"]} sent for ' \
+                        'group {group["name"]} at {self._host}')
                     break
                 else:
-                    print('do_group_power_control: %s failed to send for ' \
-                            'group %s at %s, retrying ...' %
-                            (group['operation'], group['name'], self._host))
+                    self.warning(f'{fname}: {group["operation"]} failed to ' \
+                        'send for group {group["operation"]} at {self._host}, '\
+                        'retrying ...')
                     time.sleep(1)
                     retries += 1

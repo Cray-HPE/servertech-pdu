@@ -58,10 +58,10 @@ from pdu.pdu import PDU
 
 VERSION = '0.1.0'
 
-def sighandler():
+def sighandler(_sig, _frame):
     """ Handle CTRL-C """
     print('Exiting.')
-    sys.exit(1)
+    sys.exit(0)
 
 signal.signal(signal.SIGINT, sighandler)
 
@@ -258,6 +258,7 @@ def main():
             jsonfile = open(args.file)
         except IOError as io_err:
             print('open() failed', io_err)
+            sys.exit(1)
 
         with jsonfile:
             data = jsonfile.read()
@@ -266,6 +267,7 @@ def main():
             opts = json.loads(data)
         except json.JSONDecodeError as json_error:
             print("Failed to parse json from file: ", json_error)
+            sys.exit(1)
 
     opts = load_arguments(opts, args)
     if opts is None:

@@ -38,8 +38,12 @@ Typical usage example:
 
 import json
 from http import HTTPStatus
+import logging
 import requests
 import urllib3
+
+logging.basicConfig(level=logging.INFO,
+            format="%(levelname)s:%(name)s:%(message)s")
 
 class URLs:
     """ Jaws API URLs """
@@ -83,9 +87,18 @@ class Jaws:
         self._host = host
         self._basic_auth = None
         self._headers = ''
-        self._base_url = 'https://%s' % self._host
+        self._base_url = f'https://{self._host}'
         self.configure_basic_auth(user, passwd)
         self.generate_header()
+        self.logger = logging.getLogger("jaws")
+
+    def error(self, msg: str):
+        """ Log an error """
+        self.logger.error(msg)
+
+    def warning(self, msg: str):
+        """ Log a warning """
+        self.logger.warning(msg)
 
     def configure_basic_auth(self, user: str, passwd: str):
         """
@@ -131,8 +144,9 @@ class Jaws:
         # InsecureRequestWarning. The following line disables only the
         # IsnsecureRequestWarning.
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        url = f'{self._base_url}/{URLs.OUTLET_MONITOR}'
 
-        url = '%s/%s' % (self._base_url, URLs.OUTLET_MONITOR)
+        rsp = None
         try:
             rsp = requests.get(
                     url = url,
@@ -141,20 +155,19 @@ class Jaws:
                     verify = False
                 )
         except requests.HTTPError as req_http_err:
-            print(fname, ': HTTP Error: ', req_http_err)
+            self.error(f'{fname}: HTTP Error: {req_http_err}')
         except requests.ConnectionError as req_con_err:
-            print(fname, ': Connection Error: ', req_con_err)
+            self.error(f'{fname}: Connection Error: {req_con_err}')
         except requests.Timeout as req_to:
-            print(fname, ': Timeout: ', req_to)
+            self.error(f'{fname}: Timeout: {req_to}')
         except requests.RequestException as req_err:
-            print(fname, ': Error: ', req_err)
+            self.error(f'{fname}: {req_err}')
 
-        if not rsp.text:
+        if rsp is None or not rsp.text:
             return None
 
         if rsp.status_code >= HTTPStatus.MULTIPLE_CHOICES:
-            print(fname, ': Jaws call returned %d.' %
-                    rsp.status_code)
+            self.warning('f{fname}: Call returned {rsp.status_code}')
 
         return rsp.text
 
@@ -174,8 +187,9 @@ class Jaws:
         # InsecureRequestWarning. The following line disables only the
         # IsnsecureRequestWarning.
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        url = '%s/%s' % (self._base_url, URLs.GROUP_MONITOR)
+        url = f'{self._base_url}/{URLs.GROUP_MONITOR}'
 
+        rsp = None
         try:
             rsp = requests.get(
                     url = url,
@@ -185,20 +199,19 @@ class Jaws:
                 )
 
         except requests.HTTPError as req_http_err:
-            print(fname, ': HTTP Error: ', req_http_err)
+            self.error(f'{fname}: HTTP Error: {req_http_err}')
         except requests.ConnectionError as req_con_err:
-            print(fname, ': Connection Error: ', req_con_err)
+            self.error(f'{fname}: Connection Error: {req_con_err}')
         except requests.Timeout as req_to:
-            print(fname, ': Timeout: ', req_to)
+            self.error(f'{fname}: Timeout: {req_to}')
         except requests.RequestException as req_err:
-            print(fname, ': Error: ', req_err)
+            self.error(f'{fname}: {req_err}')
 
-        if not rsp.text:
+        if rsp is None or not rsp.text:
             return None
 
         if rsp.status_code >= HTTPStatus.MULTIPLE_CHOICES:
-            print(fname, ': Jaws call returned %d.' %
-                    rsp.status_code)
+            self.warning('f{fname}: Call returned {rsp.status_code}')
             return None
 
         return rsp.text
@@ -221,13 +234,13 @@ class Jaws:
         # InsecureRequestWarning. The following line disables only the
         # IsnsecureRequestWarning.
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-        url = '%s/%s/%s' % (self._base_url, URLs.OUTLET_CONTROL, outlet)
+        url = f'{self._base_url}/{URLs.OUTLET_CONTROL}/{outlet}'
 
         payload = {
             'control_action': operation
         }
 
+        rsp = None
         try:
             rsp = requests.patch(
                 url = url,
@@ -238,18 +251,20 @@ class Jaws:
             )
 
         except requests.HTTPError as req_http_err:
-            print(fname, ': HTTP Error: ', req_http_err)
+            self.error(f'{fname}: HTTP Error: {req_http_err}')
         except requests.ConnectionError as req_con_err:
-            print(fname, ': Connection Error: ', req_con_err)
+            self.error(f'{fname}: Connection Error: {req_con_err}')
         except requests.Timeout as req_to:
-            print(fname, ': Timeout: ', req_to)
+            self.error(f'{fname}: Timeout: {req_to}')
         except requests.RequestException as req_err:
-            print(fname, ': Error: ', req_err)
+            self.error(f'{fname}: {req_err}')
+
+        if rsp is None:
+            return 1
 
         if rsp.status_code >= HTTPStatus.MULTIPLE_CHOICES:
-            print(fname, ': (%d) Failed to send \'%s\' to ' \
-                    'outlet %s in %s' %
-                    (rsp.status_code, operation, outlet, self._host))
+            self.warning('f{fname}: ({rsp.status_code}) Failed to send ' \
+                '\'{operation}\' to outlet {outlet} in {self._host}')
             return 1
 
         return 0
@@ -272,13 +287,13 @@ class Jaws:
         # InsecureRequestWarning. The following line disables only the
         # IsnsecureRequestWarning.
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-        url = '%s/%s/%s' % (self._base_url, URLs.GROUP_CONTROL, group)
+        url = f'{self._base_url}/{URLs.GROUP_CONTROL}/{group}'
 
         payload = {
             'control_action': operation
         }
 
+        rsp = None
         try:
             rsp = requests.patch(
                 url = url,
@@ -289,18 +304,20 @@ class Jaws:
             )
 
         except requests.HTTPError as req_http_err:
-            print(fname, ': HTTP Error: ', req_http_err)
+            self.error(f'{fname}: HTTP Error: {req_http_err}')
         except requests.ConnectionError as req_con_err:
-            print(fname, ': Connection Error: ', req_con_err)
+            self.error(f'{fname}: Connection Error: {req_con_err}')
         except requests.Timeout as req_to:
-            print(fname, ': Timeout: ', req_to)
+            self.error(f'{fname}: Timeout: {req_to}')
         except requests.RequestException as req_err:
-            print(fname, ': Error: ', req_err)
+            self.error(f'{fname}: {req_err}')
+
+        if rsp is None:
+            return 1
 
         if rsp.status_code >= HTTPStatus.MULTIPLE_CHOICES:
-            print('send_group_power_command: (%d) Failed to send \'%s\' to ' \
-                    'group %s in %s' %
-                    (rsp.status_code, operation, group, self._host))
+            self.warning('f{fname}: ({rsp.status_code}) Failed to send ' \
+                '\'{operation}\' to group {group} in {self._host}')
             return 1
 
         return 0
