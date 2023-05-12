@@ -25,6 +25,11 @@ Types of changes
 
 ## [Unreleased]
 
+## [0.2.0] - 2023-05-05
+
+### Changed
+- Improved exception handling and error logging
+
 ## [0.1.0] - 2023-04-05
 
 ### Added

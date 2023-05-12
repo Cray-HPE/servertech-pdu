@@ -52,9 +52,18 @@ import argparse
 import sys
 import json
 import getpass
+import signal
+
 from pdu.pdu import PDU
 
-VERSION = '0.1.0'
+VERSION = '0.2.0'
+
+def sighandler(_sig, _frame):
+    """ Handle CTRL-C """
+    print('Exiting.')
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, sighandler)
 
 def print_outlet_status(pdu: str, outlet_status: dict, outlets: list) -> None:
     """
@@ -245,9 +254,20 @@ def main():
     opts = {}
 
     if args.file is not None:
-        with open(args.file) as jsonfile:
+        try:
+            jsonfile = open(args.file)
+        except IOError as io_err:
+            print('open() failed', io_err)
+            sys.exit(1)
+
+        with jsonfile:
             data = jsonfile.read()
-        opts = json.loads(data)
+
+        try:
+            opts = json.loads(data)
+        except json.JSONDecodeError as json_error:
+            print("Failed to parse json from file: ", json_error)
+            sys.exit(1)
 
     opts = load_arguments(opts, args)
     if opts is None:
