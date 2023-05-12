@@ -54,9 +54,12 @@ import json
 import getpass
 import signal
 
+from multiprocessing.dummy import Pool as ThreadPool
+
 from pdu.pdu import PDU
 
 VERSION = '0.2.0'
+DEF_THREADS = 10
 
 def sighandler(_sig, _frame):
     """ Handle CTRL-C """
@@ -98,7 +101,7 @@ def print_outlet_status(pdu: str, outlet_status: dict, outlets: list) -> None:
             if not found:
                 print('%-40s %-6s INVALID OUTLET NAME' % (pdu, target))
 
-def get_outlet_status(opts: dict) -> int:
+def get_outlet_status(pdu: str, opts: dict) -> int:
     """
     Prepare outlet lists for status print
 
@@ -111,39 +114,50 @@ def get_outlet_status(opts: dict) -> int:
     """
 
     noutlets = []
-    pdu_dev_list = []
     ret = 0
 
-    for pdu in opts['pdus']:
-        pdu_dev_list.append(PDU(pdu, opts['user'], opts['passwd']))
+    pdu_dev = PDU(pdu, opts['user'], opts['passwd'])
 
-    for pdu_dev in pdu_dev_list:
-        if 'groups' in opts and len(opts['groups']) > 0:
-            group_list = pdu_dev.get_group_information()
+    if 'groups' in opts and len(opts['groups']) > 0:
+        group_list = pdu_dev.get_group_information()
 
-            if group_list is None:
-                print('Failed to retrieve group information from %s.' % pdu_dev.get_host())
-            else:
-                for pdu_group in group_list:
-                    for group in opts['groups']:
-                        if pdu_group['name'] == group['name']:
-                            noutlets.extend(pdu_group['outlet_access'])
+        if group_list is None:
+            print('Failed to retrieve group information from %s.' % pdu_dev.get_host())
+        else:
+            for pdu_group in group_list:
+                for group in opts['groups']:
+                    if pdu_group['name'] == group['name']:
+                        noutlets.extend(pdu_group['outlet_access'])
 
-        if 'outlets' in opts and len(opts['outlets']) > 0:
-            for outlet in opts['outlets']:
-                noutlets.append(outlet['name'])
+    if 'outlets' in opts and len(opts['outlets']) > 0:
+        for outlet in opts['outlets']:
+            noutlets.append(outlet['name'])
 
-        if len(noutlets) > 0:
-            noutlets = list(set(noutlets))
-            outlet_status = pdu_dev.get_outlet_status_all()
+    if len(noutlets) > 0:
+        noutlets = list(set(noutlets))
+        outlet_status = pdu_dev.get_outlet_status_all()
 
-            if outlet_status is None:
-                print('Failed to retrieve outlet status from %s.' % pdu_dev.get_host())
-                return 1
+        if outlet_status is None:
+            print('Failed to retrieve outlet status from %s.' % pdu_dev.get_host())
+            return 1
 
-            print_outlet_status(pdu_dev.get_host(), outlet_status, noutlets)
+        print_outlet_status(pdu_dev.get_host(), outlet_status, noutlets)
 
     return ret
+
+def do_group_power_control(pdu: str, opts: dict):
+    """
+    Thread wrapper for PDU.do_group_power_control
+    """
+    pdu_dev = PDU(pdu, opts['user'], opts['passwd'])
+    pdu_dev.do_group_power_control(opts['groups'])
+
+def do_outlet_power_control(pdu: str, opts: dict):
+    """
+    Thread wrapper for PDU.do_outlet_power_control
+    """
+    pdu_dev = PDU(pdu, opts['user'], opts['passwd'])
+    pdu_dev.do_outlet_power_control(opts['groups'])
 
 def load_arguments(opts: dict, args: dict) -> dict:
     """
@@ -222,6 +236,13 @@ def load_arguments(opts: dict, args: dict) -> dict:
     if args.passwd is not None:
         opts['passwd'] = args.passwd
 
+    opts['threads'] = DEF_THREADS
+    if args.threads is not None:
+        if args.threads > 0:
+            opts['threads'] = args.threads
+        else:
+            print(f'Too few threads selected, using default {DEF_THREADS}')
+
     return opts
 
 def main():
@@ -243,6 +264,7 @@ def main():
     parser.add_argument('--passwd', help='Jaws password')
     parser.add_argument('--file',help='power sequence file in json, command ' \
                                         'line overrides values in the file')
+    parser.add_argument('--threads', type=int, help='number of threads to use')
     parser.add_argument('--version', action='store_true',
                         help='print script version information and exit')
     args = parser.parse_args()
@@ -286,15 +308,23 @@ def main():
         print('Invalid arguments.')
         return 1
 
-    if 'operation' in opts and opts['operation'] == 'status':
-        return get_outlet_status(opts)
+    tpool = ThreadPool(opts['threads'])
 
+    targs = []
     for pdu in opts['pdus']:
-        pdu_dev = PDU(pdu, opts['user'], opts['passwd'])
+        targs.append((pdu,opts))
+
+    if 'operation' in opts and opts['operation'] == 'status':
+        tpool.starmap(get_outlet_status, targs)
+    else:
         if 'groups' in opts and len(opts['groups']) > 0:
-            pdu_dev.do_group_power_control(opts['groups'])
+            tpool.starmap(do_group_power_control, targs)
+
         if 'outlets' in opts and len(opts['outlets']) > 0:
-            pdu_dev.do_outlet_power_control(opts['outlets'])
+            tpool.starmap(do_outlet_power_control, targs)
+
+    tpool.close()
+    tpool.join()
 
     return 0
 
