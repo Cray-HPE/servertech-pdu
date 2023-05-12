@@ -58,7 +58,7 @@ from multiprocessing.dummy import Pool as ThreadPool
 
 from pdu.pdu import PDU
 
-VERSION = '0.2.0'
+VERSION = '0.3.0'
 DEF_THREADS = 10
 
 def sighandler(_sig, _frame):
