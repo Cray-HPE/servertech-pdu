@@ -25,6 +25,14 @@ Types of changes
 
 ## [Unreleased]
 
+## [0.3.0] - 2023-05-12
+
+### Added
+- Threading for handling iPDUs in parallel
+
+### Changed
+- Fixed some logging
+
 ## [0.2.0] - 2023-05-05
 
 ### Changed

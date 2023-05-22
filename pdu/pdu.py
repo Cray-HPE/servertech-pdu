@@ -110,13 +110,13 @@ class PDU:
         while True:
             if retries > 5:
                 self.error(f'{fname}: exceeded retries for {self._host}, ' \
-                    'giving up')
+                    f'giving up')
                 return None
             rsp = self._jaws.get_outlet_status_all()
 
             if rsp is None:
                 self.warning(f'{fname}: None returned from {self._host}, ' \
-                    'retrying ...')
+                    f'retrying ...')
                 time.sleep(1)
                 retries += 1
                 continue
@@ -126,7 +126,7 @@ class PDU:
                 break
             except json.decoder.JSONDecodeError:
                 self.warning(f'{fname}: JSON decode Failed from {self._host}, '\
-                    'retrying ...')
+                    f'retrying ...')
                 time.sleep(1)
                 retries += 1
 
@@ -150,13 +150,13 @@ class PDU:
         while True:
             if retries > 5:
                 self.error(f'{fname}: exceeded retries for {self._host}, ' \
-                    'giving up')
+                    f'giving up')
                 return None
             rsp = self._jaws.get_group_information()
 
             if rsp is None:
                 self.warning(f'{fname}: None returned from {self._host}, ' \
-                    'retrying ...')
+                    f'retrying ...')
                 time.sleep(1)
                 retries += 1
                 continue
@@ -166,7 +166,7 @@ class PDU:
                 break
             except json.decoder.JSONDecodeError:
                 self.warning(f'{fname}: JSON decode Failed from {self._host}, '\
-                    'retrying ...')
+                    f'retrying ...')
                 time.sleep(1)
                 retries += 1
 
@@ -192,8 +192,8 @@ class PDU:
             while True:
                 if retries >= 5:
                     self.error(f'{fname}: {outlet["operation"]} exceeded ' \
-                        'retries for outlet ' \
-                        '{outlet["name"]} at {self._host}, giving up')
+                        f'retries for outlet ' \
+                        f'{outlet["name"]} at {self._host}, giving up')
                     break
 
                 retval = self._jaws.send_outlet_power_command(
@@ -201,12 +201,12 @@ class PDU:
 
                 if retval == 0:
                     self.info(f'Success, {outlet["operation"]} sent for ' \
-                        'outlet {outlet["name"]} at {self._host}')
+                        f'outlet {outlet["name"]} at {self._host}')
                     break
                 else:
                     self.warning(f'{fname}: {outlet["operation"]} failed to ' \
-                        'send for outlet {outlet["name"]} at {self._host}, ' \
-                        'retyring ...')
+                        f'send for outlet {outlet["name"]} at {self._host}, ' \
+                        f'retyring ...')
                     time.sleep(1)
                     retries += 1
 
@@ -227,8 +227,8 @@ class PDU:
             while True:
                 if retries >= 5:
                     self.error(f'{fname}: {group["operation"]} exceeded ' \
-                        'retries for group {group["name"]} at {self._host}, ' \
-                        'giving up')
+                        f'retries for group {group["name"]} at {self._host}, ' \
+                        f'giving up')
                     break
 
                 retval = self._jaws.send_group_power_command(
@@ -236,11 +236,11 @@ class PDU:
 
                 if retval == 0:
                     self.info(f'Success, {group["operation"]} sent for ' \
-                        'group {group["name"]} at {self._host}')
+                        f'group {group["name"]} at {self._host}')
                     break
                 else:
                     self.warning(f'{fname}: {group["operation"]} failed to ' \
-                        'send for group {group["operation"]} at {self._host}, '\
-                        'retrying ...')
+                        f'send for group {group["operation"]} at {self._host}, '\
+                        f'retrying ...')
                     time.sleep(1)
                     retries += 1

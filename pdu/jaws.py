@@ -264,7 +264,7 @@ class Jaws:
 
         if rsp.status_code >= HTTPStatus.MULTIPLE_CHOICES:
             self.warning('f{fname}: ({rsp.status_code}) Failed to send ' \
-                '\'{operation}\' to outlet {outlet} in {self._host}')
+                f'\'{operation}\' to outlet {outlet} in {self._host}')
             return 1
 
         return 0
@@ -317,7 +317,7 @@ class Jaws:
 
         if rsp.status_code >= HTTPStatus.MULTIPLE_CHOICES:
             self.warning('f{fname}: ({rsp.status_code}) Failed to send ' \
-                '\'{operation}\' to group {group} in {self._host}')
+                f'\'{operation}\' to group {group} in {self._host}')
             return 1
 
         return 0
